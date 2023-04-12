@@ -1,5 +1,5 @@
 import React, { ChangeEvent, FormEvent, useState } from 'react'
-import { AppBar, Box, Container, Icon, IconButton, Input, InputAdornment, OutlinedInput, TextField, Toolbar, Typography } from '@mui/material'
+import { AppBar, Backdrop, Box, CircularProgress, Container, IconButton, InputAdornment, OutlinedInput, Toolbar, Typography } from '@mui/material'
 import { LocationSearching, Send } from '@mui/icons-material';
 import Image from 'next/image';
 import Logo from '../../public/logo.svg';
@@ -8,7 +8,9 @@ import Snack from '@/components/Snack/Snack';
 
 export default function Place() {
     const [place, setPlace] = useState('');
-    const [open, setOpen] = useState(false);
+    const [alertOpen, setalertOpen] = useState(false);
+    const [text, setText] = useState('');
+    const [loading, setLoading] = useState(false);
     const router = useRouter();
 
     const inputChange = (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
@@ -16,17 +18,38 @@ export default function Place() {
     };
 
     const openAlert = () => {
-        setOpen(true);
+        setalertOpen(true);
     }
 
-    const handleSubmit = () => {
-        if(place.length > 0){
-            router.push({
-                pathname: '/',
-                query: {place: place}
-            })
+    const handleSubmit = (e: FormEvent) => {
+        e.preventDefault();
+        setLoading(true)
+        if (place.length > 0) {
+            const url = `http://api.weatherapi.com/v1/current.json?key=${process.env.NEXT_PUBLIC_API_KEY}&q=${place}&aqi=no`;
+            fetch(url)
+                .then(res => {
+                    if (res.ok) {
+                        return res.json();
+                    }
+                    throw res;
+                })
+                .then(() => {
+                    router.push({
+                        pathname: '/',
+                        query: { place: place }
+                    })
+                })
+                .catch(error => {
+                    console.error(`Error fetching data from ${url}\n${error}`);
+                    setText('Invalid place name');
+                    openAlert();
+                })
+                .finally(() => {
+                    setLoading(false);
+                })
         }
-        else{
+        else {
+            setText('Invalid place name');
             openAlert();
         }
     }
@@ -44,35 +67,46 @@ export default function Place() {
                 </Toolbar>
             </AppBar>
             <Container sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '90vh' }}>
-                <Box sx={{ margin: '10px', backgroundColor: '#f0f0f0', borderRadius: 5 }}>
-                    <Box sx={{ margin: 7 }}>
-                        <Typography variant='h5'>Select a location</Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                            <OutlinedInput
-                                onChange={inputChange}
-                                startAdornment={
-                                    <InputAdornment position='start'>
-                                        <LocationSearching />
-                                    </InputAdornment>
-                                }
-                                endAdornment={
-                                    <InputAdornment position='start'>
-                                        <IconButton
-                                            aria-label="toggle password visibility"
-                                            onClick={handleSubmit}
-                                            edge="end"
-                                        >
-                                            <Send />
-                                        </IconButton>
-                                    </InputAdornment>
-                                }
-                            />
+                {loading ?
+                    <Backdrop
+                        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+                        open={loading}
+                    >
+                        <CircularProgress color="inherit" />
+                    </Backdrop>
+                    :
+                    <>
 
+                        <Box sx={{ margin: '10px', backgroundColor: '#f0f0f0', borderRadius: 5 }}>
+                            <Box sx={{ margin: 7 }}>
+                                <Typography variant='h5'>Select a location</Typography>
+                                <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                                    <OutlinedInput
+                                        onChange={inputChange}
+                                        startAdornment={
+                                            <InputAdornment position='start'>
+                                                <LocationSearching />
+                                            </InputAdornment>
+                                        }
+                                        endAdornment={
+                                            <InputAdornment position='start'>
+                                                <IconButton
+                                                    aria-label="toggle password visibility"
+                                                    onClick={handleSubmit}
+                                                    edge="end"
+                                                >
+                                                    <Send />
+                                                </IconButton>
+                                            </InputAdornment>
+                                        }
+                                    />
+
+                                </Box>
+                            </Box>
                         </Box>
-                    </Box>
-                </Box>
+
+                        <Snack open={alertOpen} setOpen={setalertOpen} text={text} /></>}
             </Container>
-            <Snack open={open} setOpen={setOpen} text={'Invalid place name'} />
         </Container>
     )
 }
