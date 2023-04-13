@@ -1,4 +1,4 @@
-import React, { ChangeEvent, FormEvent, useState } from 'react'
+import React, { ChangeEvent, FormEvent, KeyboardEventHandler, useState } from 'react'
 import { AppBar, Backdrop, Box, CircularProgress, Container, IconButton, InputAdornment, OutlinedInput, Toolbar, Typography } from '@mui/material'
 import { LocationSearching, Send } from '@mui/icons-material';
 import Image from 'next/image';
@@ -21,8 +21,14 @@ export default function Place() {
         setalertOpen(true);
     }
 
-    const handleSubmit = (e: FormEvent) => {
-        e.preventDefault();
+    const keyPressed = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if(e.key == 'Enter'){
+            handleSubmit();
+        }
+    }
+
+    const handleSubmit = (e?: FormEvent) => {
+        e?.preventDefault();
         setLoading(true)
         if (place.length > 0) {
             const url = `http://api.weatherapi.com/v1/current.json?key=${process.env.NEXT_PUBLIC_API_KEY}&q=${place}&aqi=no`;
@@ -66,7 +72,7 @@ export default function Place() {
                     </Typography>
                 </Toolbar>
             </AppBar>
-            <Container sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '90vh' }}>
+            <Container sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
                 {loading ?
                     <Backdrop
                         sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
@@ -83,6 +89,7 @@ export default function Place() {
                                 <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
                                     <OutlinedInput
                                         onChange={inputChange}
+                                        onKeyDown={keyPressed}
                                         startAdornment={
                                             <InputAdornment position='start'>
                                                 <LocationSearching />

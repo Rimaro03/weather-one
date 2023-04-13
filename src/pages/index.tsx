@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react'
-import { Box, Container, Typography } from '@mui/material'
+import { Backdrop, Box, CircularProgress, Container, IconButton, InputAdornment, OutlinedInput, TextField, Typography } from '@mui/material'
 import { useRouter } from 'next/router'
+import { LocationSearching, Search, Send } from '@mui/icons-material';
+import Image from 'next/image';
 
 export default function Home() {
   const router = useRouter();
@@ -16,7 +18,10 @@ export default function Home() {
     if (!place || place?.length == 0) {
       router.push('/place')
     }
-    fetchData();
+    fetchData()
+      .then(() => {
+        setLoading(false);
+      })
   }, []);
 
   const fetchData = async () => {
@@ -38,14 +43,54 @@ export default function Home() {
       })
       .catch(error => {
         console.error(`Error fetching data in the index page, redirecting...\n${error}`);
-        
       })
+
   }
 
   return (
-    <Container>
-      <Box width={'30%'}></Box>
-      <Box width={'70%'}></Box>
-    </Container>
+    <Box sx={{ display: 'flex', height: '95vh', marginLeft: 30, marginRight: 30, boxShadow: 2 }}>
+      {!currentWeather || loading ?
+        <Backdrop open={loading}>
+          <CircularProgress />
+        </Backdrop>
+        :
+        <>
+          <Box width={'30%'} sx={{ display: 'flex' }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', margin: 'auto' }}>
+              <TextField
+                placeholder='Search for a place...'
+                size="small"
+                variant='outlined'
+                InputProps={{
+                  startAdornment:
+                    <InputAdornment position='start'>
+                      <Search />
+                    </InputAdornment>,
+                  endAdornment:
+                    <InputAdornment position='start'>
+                      <IconButton
+                        aria-label="toggle password visibility"
+                        edge="end"
+                      >
+                        <LocationSearching />
+                      </IconButton>
+                    </InputAdornment>
+                }}
+              />
+              <Image src={`https:${currentWeather.current.condition.icon}`} height={64} width={64} alt={'Current weather image'}/>
+            </Box>
+          </Box>
+          <Box width={'70%'} sx={{ backgroundColor: '#f0f0f0' }}></Box></>
+      }
+    </Box>
   )
+
 }
+
+export async function getServerSideProps(context: any) {
+  return {
+    props: {}, // will be passed to the page component as props
+  }
+}
+
+
