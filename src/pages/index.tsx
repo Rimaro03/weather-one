@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react'
-import { Backdrop, Box, CircularProgress, Container, IconButton, InputAdornment, OutlinedInput, TextField, Typography } from '@mui/material'
+import { AppBar, Backdrop, Box, Button, CircularProgress, Container, IconButton, InputAdornment, OutlinedInput, TextField, ToggleButton, ToggleButtonGroup, Toolbar, Typography } from '@mui/material'
 import { useRouter } from 'next/router'
-import { LocationSearching, Search, Send } from '@mui/icons-material';
+import { LocationSearching, Menu, Search, Send } from '@mui/icons-material';
 import Image from 'next/image';
+import StyledToggleButtonGroup from '@/components/ToggleButtonGroup/StyledToggleButtonGroup';
+import ForecastCard from '@/components/ForecastCard/ForecastCard';
 
 export default function Home() {
   const router = useRouter();
@@ -12,6 +14,8 @@ export default function Home() {
   const [forecast, setForecast] = useState();
   const [astronomy, setAstronomy] = useState();
   const baseURL = 'http://api.weatherapi.com/v1';
+  const [tempUnit, setTempUnit] = useState('celsius');
+  const [locale, setLocale] = useState('en-US')
 
   useEffect(() => {
     setLoading(true);
@@ -23,6 +27,11 @@ export default function Home() {
         setLoading(false);
       })
   }, []);
+
+  useEffect(() => {
+    console.log(tempUnit);
+
+  }, [tempUnit])
 
   const fetchData = async () => {
     Promise.all([
@@ -38,13 +47,21 @@ export default function Home() {
       })
       .then(([dataCurrentWeather, dataForecast, dataAstronomy]) => {
         setCurrentWeather(dataCurrentWeather);
-        setForecast(dataForecast);
+        setForecast(dataForecast.forecast);
         setAstronomy(dataAstronomy);
       })
       .catch(error => {
         console.error(`Error fetching data in the index page, redirecting...\n${error}`);
       })
+  }
 
+  const handleTempUnitChange = (event: React.MouseEvent<HTMLElement>, newValue: string) => {
+    setTempUnit(newValue);
+  }
+
+  const getDayName = (dateStr: string, locale: string) => {
+    var date = new Date(dateStr);
+    return date.toLocaleDateString(locale, { weekday: 'long' });
   }
 
   return (
@@ -77,10 +94,50 @@ export default function Home() {
                     </InputAdornment>
                 }}
               />
-              <Image src={`https:${currentWeather.current.condition.icon}`} height={64} width={64} alt={'Current weather image'}/>
+              <Image src={`https:${currentWeather.current.condition.icon}`} height={64} width={64} alt={'Current weather image'} />
             </Box>
           </Box>
-          <Box width={'70%'} sx={{ backgroundColor: '#f0f0f0' }}></Box></>
+          <Box width={'70%'} sx={{ backgroundColor: '#f0f0f0' }}>
+            <Box sx={{ margin: 2 }}>
+              <AppBar position="static" color='transparent' sx={{ boxShadow: 'none' }}>
+                <Toolbar>
+                  <Typography variant="h5" component="div" fontWeight={'500'} sx={{ flexGrow: 1 }}>
+                    Weekly forecast
+                  </Typography>
+                  <StyledToggleButtonGroup
+                    value={tempUnit}
+                    exclusive
+                    onChange={handleTempUnitChange}
+                    aria-label="text alignment"
+
+                  >
+                    <ToggleButton value="celsius" aria-label="left aligned" sx={{ borderRadius: 2 }}>
+                      <Typography>℃</Typography>
+                    </ToggleButton>
+                    <ToggleButton value="fahrenheit" aria-label="centered" sx={{ borderRadius: 2 }}>
+                      <Typography>℉</Typography>
+                    </ToggleButton>
+                  </StyledToggleButtonGroup>
+                </Toolbar>
+              </AppBar>
+              <Box sx={{ padding: '24px', display: 'flex', justifyContent: 'space-between' }}>
+                {forecast.forecastday.map((item, index: number) => {
+                  const dayName = getDayName(item.date, locale);
+                  let maxtemp = item.day.maxtemp_c;
+                  let mintemp = item.day.mintemp_c;
+                  if (tempUnit == 'fahrenheit') {
+                    maxtemp = item.day.maxtemp_f;
+                    mintemp = item.day.mintemp_f;
+                  }
+
+                  return (
+                    <ForecastCard day={dayName} icon={`https:${item.day.condition.icon}`} tempMax={maxtemp} tempMin={mintemp} key={index} />
+                  )
+                })}
+              </Box>
+            </Box>
+          </Box>
+        </>
       }
     </Box>
   )
