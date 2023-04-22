@@ -20,6 +20,9 @@
     "@types/react": "18.0.33",
     "@types/react-dom": "18.0.11",
     "babel-plugin-transform-define": "^2.1.0",
+    "d3-format": "^3.1.0",
+    "d3-scale": "^4.0.2",
+    "d3-shape": "^3.2.0",
     "eslint": "^8.0.1",
     "eslint-config-next": "13.3.0",
     "next": "13.3.0",
@@ -29,6 +32,9 @@
     "typescript": "*"
   },
   "devDependencies": {
+    "@types/d3-format": "^3.0.1",
+    "@types/d3-scale": "^4.0.3",
+    "@types/d3-shape": "^3.1.1",
     "@typescript-eslint/eslint-plugin": "^5.43.0",
     "eslint-config-standard-with-typescript": "^34.0.1",
     "eslint-plugin-import": "^2.25.2",

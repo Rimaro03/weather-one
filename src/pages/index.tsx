@@ -1,17 +1,22 @@
 import React, { useEffect, useState } from 'react'
-import { AppBar, Backdrop, Box, Button, CircularProgress, Container, IconButton, InputAdornment, OutlinedInput, TextField, ToggleButton, ToggleButtonGroup, Toolbar, Typography } from '@mui/material'
+import { AppBar, Backdrop, Box, CircularProgress, Grid, IconButton, InputAdornment, TextField, ToggleButton, Toolbar, Typography } from '@mui/material'
 import { useRouter } from 'next/router'
-import { LocationSearching, Menu, Search, Send } from '@mui/icons-material';
+import { LocationSearching, Search, } from '@mui/icons-material';
 import Image from 'next/image';
 import StyledToggleButtonGroup from '@/components/ToggleButtonGroup/StyledToggleButtonGroup';
 import ForecastCard from '@/components/ForecastCard/ForecastCard';
+import Gauge from '@/components/Gauge/Gauge';
+import Forecast from '@/components/Forecast/Forecast';
+import { currentweather, forecast } from '@/interfaces/weather';
+import Header from '@/components/Header/Header';
+import Today from '@/components/Today/Today';
 
 export default function Home() {
   const router = useRouter();
   const place = router.query.place;
   const [loading, setLoading] = useState(false);
-  const [currentWeather, setCurrentWeather] = useState();
-  const [forecast, setForecast] = useState();
+  const [currentWeather, setCurrentWeather] = useState<currentweather>();
+  const [forecast, setForecast] = useState<forecast>();
   const [astronomy, setAstronomy] = useState();
   const baseURL = 'http://api.weatherapi.com/v1';
   const [tempUnit, setTempUnit] = useState('celsius');
@@ -26,6 +31,7 @@ export default function Home() {
       .then(() => {
         setLoading(false);
       })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -36,7 +42,7 @@ export default function Home() {
   const fetchData = async () => {
     Promise.all([
       fetch(`${baseURL}/current.json?key=${process.env.NEXT_PUBLIC_API_KEY}&q=${place}&aqi=yes`),
-      fetch(`${baseURL}/forecast.json?key=${process.env.NEXT_PUBLIC_API_KEY}&q=${place}&days=7&aqi=no&alerts=no`),
+      fetch(`${baseURL}/forecast.json?key=${process.env.NEXT_PUBLIC_API_KEY}&q=${place}&days=6&aqi=no&alerts=no`),
       fetch(`${baseURL}/astronomy.json?key=${process.env.NEXT_PUBLIC_API_KEY}&q=${place}&dt=2023-04-12`)
     ])
       .then(([resCurrentWeather, resForecast, resAstronomy]) => {
@@ -57,11 +63,6 @@ export default function Home() {
 
   const handleTempUnitChange = (event: React.MouseEvent<HTMLElement>, newValue: string) => {
     setTempUnit(newValue);
-  }
-
-  const getDayName = (dateStr: string, locale: string) => {
-    var date = new Date(dateStr);
-    return date.toLocaleDateString(locale, { weekday: 'long' });
   }
 
   return (
@@ -99,42 +100,9 @@ export default function Home() {
           </Box>
           <Box width={'70%'} sx={{ backgroundColor: '#f0f0f0' }}>
             <Box sx={{ margin: 2 }}>
-              <AppBar position="static" color='transparent' sx={{ boxShadow: 'none' }}>
-                <Toolbar>
-                  <Typography variant="h5" component="div" fontWeight={'500'} sx={{ flexGrow: 1 }}>
-                    Weekly forecast
-                  </Typography>
-                  <StyledToggleButtonGroup
-                    value={tempUnit}
-                    exclusive
-                    onChange={handleTempUnitChange}
-                    aria-label="text alignment"
-
-                  >
-                    <ToggleButton value="celsius" aria-label="left aligned" sx={{ borderRadius: 2 }}>
-                      <Typography>℃</Typography>
-                    </ToggleButton>
-                    <ToggleButton value="fahrenheit" aria-label="centered" sx={{ borderRadius: 2 }}>
-                      <Typography>℉</Typography>
-                    </ToggleButton>
-                  </StyledToggleButtonGroup>
-                </Toolbar>
-              </AppBar>
-              <Box sx={{ padding: '24px', display: 'flex', justifyContent: 'space-between' }}>
-                {forecast.forecastday.map((item, index: number) => {
-                  const dayName = getDayName(item.date, locale);
-                  let maxtemp = item.day.maxtemp_c;
-                  let mintemp = item.day.mintemp_c;
-                  if (tempUnit == 'fahrenheit') {
-                    maxtemp = item.day.maxtemp_f;
-                    mintemp = item.day.mintemp_f;
-                  }
-
-                  return (
-                    <ForecastCard day={dayName} icon={`https:${item.day.condition.icon}`} tempMax={maxtemp} tempMin={mintemp} key={index} />
-                  )
-                })}
-              </Box>
+              <Header handleTempUnitChange={handleTempUnitChange} tempUnit={tempUnit} />
+              <Forecast forecast={forecast} tempUnit={tempUnit} locale={locale} />
+              <Today currentWeather={currentWeather} />
             </Box>
           </Box>
         </>
