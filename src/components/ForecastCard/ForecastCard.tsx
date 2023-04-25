@@ -11,19 +11,19 @@ interface ForecastCardProps {
 
 export default function ForecastCard({ day, icon, tempMin, tempMax }: ForecastCardProps) {
     return (
-        <Grid 
-        item
-        sm={6}
-        md={6}
-        xl={2}
-        sx={{
-            transition: 'transform .2s',
-            ":hover": {
-                cursor: 'pointer',
-                transform: 'scale(1.1)'
-            }
-        }}>
-            <Box sx={{backgroundColor: '#FFF', borderRadius: 5,}}>
+        <Grid
+            item
+            sm={6}
+            md={4}
+            xl={2}
+            sx={{
+                transition: 'transform .2s',
+                ":hover": {
+                    cursor: 'pointer',
+                    transform: 'scale(1.1)'
+                }
+            }}>
+            <Box sx={{ backgroundColor: '#FFF', borderRadius: 5, }}>
                 <Box sx={{ margin: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     <Typography>
                         {day.slice(0, 3)}

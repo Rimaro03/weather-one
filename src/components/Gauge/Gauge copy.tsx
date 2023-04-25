@@ -15,12 +15,26 @@ const Gauge = ({
     max,
 }: GaugeProps) => {
 
+    const values = {
+        backgroundArc: {
+            innerRadius: 1.4,
+            outerRadius: 1.9,
+        },
+        filledArc: {
+            innerRadius: 1.3,
+            outerRadius: 2,
+        },
+        viewBox: [
+            -1, -1, 4, 2
+        ]
+    }
+
     const backgroundArc = arc()
         ({
-            innerRadius: 1.5,
-            outerRadius: 2,
-            startAngle: -Math.PI/2,
-            endAngle: Math.PI/2,
+            innerRadius: 1.4,
+            outerRadius: 1.9,
+            startAngle: -Math.PI / 2,
+            endAngle: Math.PI / 2,
         })
 
     const percentScale = scaleLinear()
@@ -36,8 +50,8 @@ const Gauge = ({
 
     const filledArc = arc()
         ({
-            innerRadius: 0.65,
-            outerRadius: 1,
+            innerRadius: 1.3,
+            outerRadius: 2,
             startAngle: -Math.PI / 2,
             endAngle: angle,
         })
@@ -50,12 +64,16 @@ const Gauge = ({
                 width={'9em'}
                 style={{ border: '1px solid pink' }}
                 viewBox={[
-                    -2,-2, 4, 2
+                    -2, -2, 4, 2
                 ].join(' ')}
             >
                 <path
                     d={backgroundArc!}
                     fill='#dbdbe7'
+                />
+                <path
+                    d={filledArc!}
+                    fill='#F9BF67'
                 />
             </svg>
             {/**            <div style={{

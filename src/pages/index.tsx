@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { AppBar, Backdrop, Box, CircularProgress, Grid, IconButton, InputAdornment, TextField, ToggleButton, Toolbar, Typography } from '@mui/material'
+import { AppBar, Backdrop, Box, CircularProgress, Grid, IconButton, InputAdornment, TextField, ToggleButton, Toolbar, Typography, useMediaQuery, useTheme } from '@mui/material'
 import { useRouter } from 'next/router'
 import { LocationSearching, Search, } from '@mui/icons-material';
 import Image from 'next/image';
@@ -7,9 +7,10 @@ import StyledToggleButtonGroup from '@/components/ToggleButtonGroup/StyledToggle
 import ForecastCard from '@/components/ForecastCard/ForecastCard';
 import Gauge from '@/components/Gauge/Gauge';
 import Forecast from '@/components/Forecast/Forecast';
-import { currentweather, forecast } from '@/interfaces/weather';
+import { astronomy, currentweather, forecast } from '@/interfaces/weather';
 import Header from '@/components/Header/Header';
 import Today from '@/components/Today/Today';
+import SideMenu from '@/components/SideMenu/SideMenu';
 
 export default function Home() {
   const router = useRouter();
@@ -17,10 +18,11 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [currentWeather, setCurrentWeather] = useState<currentweather>();
   const [forecast, setForecast] = useState<forecast>();
-  const [astronomy, setAstronomy] = useState();
+  const [astronomy, setAstronomy] = useState<astronomy>();
   const baseURL = 'http://api.weatherapi.com/v1';
   const [tempUnit, setTempUnit] = useState('celsius');
   const [locale, setLocale] = useState('en-US')
+  const mediaSmall = useMediaQuery(useTheme().breakpoints.down('md'));
 
   useEffect(() => {
     setLoading(true);
@@ -43,7 +45,7 @@ export default function Home() {
     Promise.all([
       fetch(`${baseURL}/current.json?key=${process.env.NEXT_PUBLIC_API_KEY}&q=${place}&aqi=yes`),
       fetch(`${baseURL}/forecast.json?key=${process.env.NEXT_PUBLIC_API_KEY}&q=${place}&days=6&aqi=no&alerts=no`),
-      fetch(`${baseURL}/astronomy.json?key=${process.env.NEXT_PUBLIC_API_KEY}&q=${place}&dt=2023-04-12`)
+      fetch(`${baseURL}/astronomy.json?key=${process.env.NEXT_PUBLIC_API_KEY}&q=${place}`)
     ])
       .then(([resCurrentWeather, resForecast, resAstronomy]) => {
         if (resCurrentWeather.ok && resForecast.ok && resAstronomy.ok) {
@@ -54,7 +56,8 @@ export default function Home() {
       .then(([dataCurrentWeather, dataForecast, dataAstronomy]) => {
         setCurrentWeather(dataCurrentWeather);
         setForecast(dataForecast.forecast);
-        setAstronomy(dataAstronomy);
+        setAstronomy(dataAstronomy.astronomy);
+        
       })
       .catch(error => {
         console.error(`Error fetching data in the index page, redirecting...\n${error}`);
@@ -66,43 +69,19 @@ export default function Home() {
   }
 
   return (
-    <Box sx={{ display: 'flex', height: '95vh', marginLeft: 30, marginRight: 30, boxShadow: 2 }}>
+    <Box sx={{ display: 'flex', height: '100%', boxShadow: 2 }}>
       {!currentWeather || loading ?
         <Backdrop open={loading}>
           <CircularProgress />
         </Backdrop>
         :
         <>
-          <Box width={'30%'} sx={{ display: 'flex' }}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', margin: 'auto' }}>
-              <TextField
-                placeholder='Search for a place...'
-                size="small"
-                variant='outlined'
-                InputProps={{
-                  startAdornment:
-                    <InputAdornment position='start'>
-                      <Search />
-                    </InputAdornment>,
-                  endAdornment:
-                    <InputAdornment position='start'>
-                      <IconButton
-                        aria-label="toggle password visibility"
-                        edge="end"
-                      >
-                        <LocationSearching />
-                      </IconButton>
-                    </InputAdornment>
-                }}
-              />
-              <Image src={`https:${currentWeather.current.condition.icon}`} height={64} width={64} alt={'Current weather image'} />
-            </Box>
-          </Box>
-          <Box width={'70%'} sx={{ backgroundColor: '#f0f0f0' }}>
+        {!mediaSmall ? <SideMenu currentWeather={currentWeather} /> : <></>}
+          <Box width={!mediaSmall ? '70%' : '100%'} sx={{ backgroundColor: '#f0f0f0', display: 'flex', justifyContent: 'space-between', flexDirection: 'column' }}>
             <Box sx={{ margin: 2 }}>
               <Header handleTempUnitChange={handleTempUnitChange} tempUnit={tempUnit} />
               <Forecast forecast={forecast} tempUnit={tempUnit} locale={locale} />
-              <Today currentWeather={currentWeather} />
+              <Today currentWeather={currentWeather} astronomy={astronomy!}/>
             </Box>
           </Box>
         </>
@@ -114,7 +93,7 @@ export default function Home() {
 
 export async function getServerSideProps(context: any) {
   return {
-    props: {}, // will be passed to the page component as props
+    props: {},
   }
 }
 

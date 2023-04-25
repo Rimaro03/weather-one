@@ -1,4 +1,4 @@
-import { Box, Grid } from "@mui/material";
+import { Grid } from "@mui/material";
 import React from "react";
 import ForecastCard from "../ForecastCard/ForecastCard";
 import { forecast, forecastdayElement } from "@/interfaces/weather";
@@ -18,7 +18,7 @@ export default function Forecast({ forecast, tempUnit, locale }: ForecastProps) 
 
 
     return (
-        <Grid container spacing={2}>
+        <Grid container spacing={4}>
             {forecast!.forecastday.map((item: forecastdayElement, index: number) => {
                 const dayName = getDayName(item.date, locale);
                 let maxtemp = item.day.maxtemp_c;
